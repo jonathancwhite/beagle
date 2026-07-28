@@ -18,6 +18,9 @@ export async function openChrome(config) {
   // otherwise the page load itself is already over by the time we listen.
   const chrome = await chromeLauncher.launch({
     startingUrl: 'about:blank',
+    // chrome-launcher's own SIGINT handler calls process.exit(), which kills
+    // us before we can print the summary. We handle Ctrl-C ourselves.
+    handleSIGINT: false,
     chromeFlags: [
       ...(config.headless ? ['--headless=new'] : []),
       '--no-first-run',

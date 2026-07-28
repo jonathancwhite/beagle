@@ -99,15 +99,19 @@ export async function run(argv) {
 
   if (target) await navigate(target);
 
-  await waitForExit(config.duration);
+  try {
+    await waitForExit(config.duration);
 
-  const rows = summarise(collector.records);
-  printSummary(rows);
+    const rows = summarise(collector.records);
+    printSummary(rows);
 
-  await writeReports(config, collector.records, rows);
-
-  await client.close().catch(() => {});
-  if (!attaching) await close();
+    await writeReports(config, collector.records, rows);
+  } finally {
+    // Always let Chrome go, even if reporting threw — otherwise we leave an
+    // orphaned browser behind.
+    await client.close().catch(() => {});
+    if (!attaching) await close();
+  }
 }
 
 /** @param {object} config */
