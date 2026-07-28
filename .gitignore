@@ -1,0 +1,5 @@
+node_modules/
+*.log
+beagle-report.json
+beagle.har
+.DS_Store

@@ -1,0 +1,27 @@
+{
+  "name": "beagle",
+  "version": "0.1.0",
+  "description": "Sniff out slow HTTP requests in a running web app, using the Chrome DevTools Protocol.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "beagle": "./bin/beagle.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "src",
+    "beagle.config.example.js",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node ./bin/beagle.js"
+  },
+  "dependencies": {
+    "chrome-launcher": "^1.1.2",
+    "chrome-remote-interface": "^0.33.2",
+    "picocolors": "^1.1.1"
+  }
+}
