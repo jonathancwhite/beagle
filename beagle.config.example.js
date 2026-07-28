@@ -26,5 +26,11 @@ export default {
   resourceTypes: ['XHR', 'Fetch'],
 
   // Print every request, not just the slow ones.
-  all: false
+  all: false,
+
+  // Where the HTML report goes. Set to null to skip it.
+  html: 'beagle-report.html',
+
+  // Open the report in the default browser when the run ends.
+  open: false
 };

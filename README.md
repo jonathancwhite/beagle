@@ -34,8 +34,11 @@ beagle [url] [options]
   -d, --duration <s>     stop and report after this many seconds
   -a, --all              print every request, not just the slow ones
       --initiator        also print the code that fired each request
-  -o, --out <path>       write a JSON report on exit
-      --har <path>       write a HAR 1.2 file on exit
+      --html <path>      where to write the HTML report (default: beagle-report.html)
+      --no-html          skip the HTML report
+      --open             open the HTML report when the run ends
+  -o, --out <path>       also write a JSON report
+      --har <path>       also write a HAR 1.2 file
 ```
 
 By default beagle tracks only `XHR` and `Fetch` — your API calls. Pass
@@ -81,6 +84,26 @@ Globs match against the whole URL. `**` crosses slashes, `*` does not. When a
 URL matches more than one threshold pattern, the longest pattern wins.
 
 See `beagle.config.example.js`.
+
+## The HTML report
+
+Every run writes `beagle-report.html` — one self-contained page, no external fonts,
+scripts or images, so you can mail it around or open it offline. It holds:
+
+- headline counts: requests tracked, how many were slow, the worst one, failures
+- a bar chart of every request over threshold, hover for method, server wait and page
+- the full table, and a rollup of every route by page with p50 / p95 / max
+- **Signals** — counted patterns worth a look, each one saying how it was arrived at:
+  endpoints whose timing swings widely, calls repeated on a single page, and how much
+  of the slow time was server wait
+
+Signals are counts, not conclusions. They point; you decide.
+
+```bash
+npx beagle http://localhost:3000 --open          # write it and open it
+npx beagle http://localhost:3000 --html perf.html
+npx beagle http://localhost:3000 --no-html       # terminal only
+```
 
 ## Reading the output
 

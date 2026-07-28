@@ -21,6 +21,10 @@ export const defaults = {
   out: null,
   /** Write a HAR 1.2 file here on exit. */
   har: null,
+  /** Where the HTML report goes. Set to null to skip it. */
+  html: 'beagle-report.html',
+  /** Open the HTML report in the default browser when the run ends. */
+  open: false,
   /** Print every tracked request, not just the slow ones. */
   all: false,
   /** Print the script frame that fired each request, under its line. */

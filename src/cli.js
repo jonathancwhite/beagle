@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util';
 import { writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import pc from 'picocolors';
@@ -8,6 +9,7 @@ import { loadConfig } from './config.js';
 import { Collector } from './collector.js';
 import { openChrome, attachCollector } from './browser.js';
 import { printRecord, printSummary, summarise, toHar } from './report.js';
+import { toHtml } from './html.js';
 
 const { version } = createRequire(import.meta.url)('../package.json');
 
@@ -27,8 +29,11 @@ Options
   -d, --duration <s>     stop and report after this many seconds
   -a, --all              print every request, not just the slow ones
       --initiator        also print the code that fired each request
-  -o, --out <path>       write a JSON report on exit
-      --har <path>       write a HAR 1.2 file on exit
+      --html <path>      where to write the HTML report (default: beagle-report.html)
+      --no-html          skip the HTML report
+      --open             open the HTML report when the run ends
+  -o, --out <path>       also write a JSON report
+      --har <path>       also write a HAR 1.2 file
   -h, --help             show this
   -v, --version          print the version
 
@@ -48,6 +53,9 @@ const OPTIONS = {
   initiator: { type: 'boolean' },
   out: { type: 'string', short: 'o' },
   har: { type: 'string' },
+  html: { type: 'string' },
+  'no-html': { type: 'boolean' },
+  open: { type: 'boolean' },
   help: { type: 'boolean', short: 'h' },
   version: { type: 'boolean', short: 'v' }
 };
@@ -72,6 +80,9 @@ export async function run(argv) {
   if (values.ignore) overrides.ignore = values.ignore;
   if (values.out) overrides.out = values.out;
   if (values.har) overrides.har = values.har;
+  if (values.html) overrides.html = values.html;
+  if (values['no-html']) overrides.html = null;
+  if (values.open) overrides.open = true;
   if (values.all) overrides.all = true;
   if (values.initiator) overrides.initiator = true;
   if (values.headless) overrides.headless = true;
@@ -170,10 +181,25 @@ function waitForExit(duration) {
  * @param {object[]} rows
  */
 async function writeReports(config, records, rows) {
+  const capturedAt = new Date().toISOString();
+
+  if (config.html) {
+    const page = toHtml({ records, rows, config, version, capturedAt });
+    await writeFile(config.html, page);
+    console.log(pc.dim(`HTML report → ${config.html}`));
+
+    if (config.open) {
+      const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+      spawn(opener, [path.resolve(config.html)], { stdio: 'ignore', detached: true, shell: process.platform === 'win32' })
+        .on('error', () => {})
+        .unref();
+    }
+  }
+
   if (config.out) {
     const report = {
       version,
-      capturedAt: new Date().toISOString(),
+      capturedAt,
       target: config.target,
       thresholds: config.thresholds,
       summary: rows,
