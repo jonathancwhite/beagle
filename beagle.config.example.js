@@ -14,12 +14,12 @@ export default {
   // Milliseconds. The longest matching pattern wins; `default` is the fallback.
   thresholds: {
     default: 800,
-    '**/care-performance/**': 2500,
+    '**/search/**': 2000,
     '**/reports/**': 5000
   },
 
   // Header names blanked before anything is printed or written to disk.
-  // Never remove `authorization` when working against regulated data.
+  // Never remove `authorization` when working against sensitive data.
   redact: ['authorization', 'cookie', 'set-cookie', 'x-api-key'],
 
   // CDP resource types. Empty array means all of them.

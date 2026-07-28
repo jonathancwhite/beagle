@@ -69,7 +69,7 @@ export default {
   ignore: ['**/auth/refresh'],
   thresholds: {
     default: 800,
-    '**/care-performance/**': 2500,
+    '**/search/**': 2000,
     '**/reports/**': 5000
   },
   redact: ['authorization', 'cookie', 'x-api-key'],
@@ -85,7 +85,7 @@ See `beagle.config.example.js`.
 ## Reading the output
 
 ```
-SLOW    2140ms  200  GET    /api/v1/care-performance/ytd wait 2098ms ← /performance/ytd
+SLOW    2140ms  200  GET    /api/v1/reports/summary wait 2098ms ← /reports/summary
 ```
 
 `wait` is the number that usually matters: time between the request leaving the
@@ -96,14 +96,14 @@ is slow — a different problem with a different fix.
 The arrow shows the page that was on screen when the request went out, so you
 can find your way back to the screen that triggered it. Single-page apps are
 handled: beagle follows `history.pushState` route changes, not just full
-navigations. Requests from an embedded iframe — a Power BI report, say — are
-attributed to the iframe rather than the host page.
+navigations. Requests from an embedded iframe — a third-party widget, say —
+are attributed to the iframe rather than the host page.
 
 For the calling code as well as the calling page, add `--initiator`:
 
 ```
-SLOW    2140ms  200  GET    /api/v1/care-performance/ytd wait 2098ms ← /performance/ytd
-        fetchYtd @ http://localhost:3000/src/services/performance.js:88
+SLOW    2140ms  200  GET    /api/v1/reports/summary wait 2098ms ← /reports/summary
+        fetchSummary @ http://localhost:3000/src/api/reports.js:88
 ```
 
 The summary reports per page and route:
@@ -116,8 +116,8 @@ The summary reports per page and route:
 | `slow` | how many crossed the threshold |
 | `err` | failures and 4xx/5xx |
 
-Routes are grouped by collapsing ids: `/patients/8821` and `/patients/9134`
-both become `/patients/:id`. The same endpoint called from two different
+Routes are grouped by collapsing ids: `/orders/8821` and `/orders/9134`
+both become `/orders/:id`. The same endpoint called from two different
 screens gets two rows — lumping them together hides the slow one.
 
 ## What it records

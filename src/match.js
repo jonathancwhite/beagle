@@ -55,7 +55,7 @@ export function matchesAny(value, patterns) {
 /**
  * Find the most specific threshold pattern a URL matches. "Most specific"
  * means the longest pattern, which is a crude but reliable proxy — a caller
- * writing `**\/patients/**` over a `default` clearly means the narrower one
+ * writing `**\/reports/**` over a `default` clearly means the narrower one
  * to win.
  *
  * @param {string} url

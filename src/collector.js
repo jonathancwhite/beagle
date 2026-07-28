@@ -35,9 +35,9 @@ export class Collector {
 
   /**
    * Where a request was fired from. Prefer the URL of the document that
-   * actually made the call — that keeps iframe traffic (an embedded Power BI
-   * report, say) labelled as its own page rather than the host page. Fall
-   * back to the tracked main-frame URL.
+   * actually made the call — that keeps iframe traffic (an embedded widget,
+   * say) labelled as its own page rather than the host page. Fall back to the
+   * tracked main-frame URL.
    *
    * @param {string|undefined} documentURL
    * @param {string|undefined} frameId
@@ -215,8 +215,8 @@ function round(value) {
 
 /**
  * Collapse a URL into a groupable route: drop the query string and swap
- * id-looking path segments for `:id`, so `/patients/8821` and
- * `/patients/9134` land in the same bucket.
+ * id-looking path segments for `:id`, so `/orders/8821` and
+ * `/orders/9134` land in the same bucket.
  *
  * @param {string} url
  * @returns {string}
