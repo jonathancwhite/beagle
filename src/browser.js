@@ -52,6 +52,15 @@ export async function attachCollector(port, collector) {
 
   await Promise.all([Network.enable(), Page.enable()]);
 
+  // Which page was on screen when a request went out. A single-page app
+  // changes its URL through history.pushState without navigating, so we track
+  // both real navigations and in-document ones.
+  const { frameTree } = await Page.getFrameTree();
+  collector.setMainFrame(frameTree.frame.id, frameTree.frame.url);
+
+  Page.frameNavigated(({ frame }) => collector.setPage(frame.id, frame.url));
+  Page.navigatedWithinDocument(({ frameId, url }) => collector.setPage(frameId, url));
+
   Network.requestWillBeSent(params => collector.requestWillBeSent(params));
   Network.responseReceived(params => collector.responseReceived(params));
   Network.loadingFinished(params => collector.loadingFinished(params));

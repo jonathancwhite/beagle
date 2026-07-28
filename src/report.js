@@ -21,7 +21,7 @@ function colorMs(ms, threshold) {
  *
  * @param {object} record
  */
-export function printRecord(record) {
+export function printRecord(record, { initiator = false } = {}) {
   const status = record.error
     ? pc.red(String(record.error).slice(0, 18).padEnd(4))
     : String(record.status ?? '---').padEnd(4);
@@ -30,10 +30,15 @@ export function printRecord(record) {
   const method = record.method.padEnd(6);
   const wait = record.timings.wait === null ? '' : pc.dim(` wait ${record.timings.wait}ms`);
   const cached = record.fromCache ? pc.dim(' (cache)') : '';
+  const from = pc.dim(` ← ${trim(record.pagePath, 32)}`);
 
   console.log(
-    `${marker} ${colorMs(record.duration, record.threshold)}  ${pc.dim(status)} ${method} ${trim(record.url, 76)}${wait}${cached}`
+    `${marker} ${colorMs(record.duration, record.threshold)}  ${pc.dim(status)} ${method} ${trim(record.url, 66)}${wait}${cached}${from}`
   );
+
+  if (initiator && record.initiator) {
+    console.log(pc.dim(`         ${trim(record.initiator, 110)}`));
+  }
 }
 
 /** @param {string} value @param {number} max @returns {string} */
@@ -51,9 +56,20 @@ export function summarise(records) {
   const groups = new Map();
 
   for (const record of records) {
-    const key = `${record.method} ${record.route}`;
+    // Keyed by page as well as route: the same endpoint called from two
+    // screens is two different stories, and lumping them hides the slow one.
+    const key = `${record.pagePath} ${record.method} ${record.route}`;
     if (!groups.has(key)) {
-      groups.set(key, { key, method: record.method, route: record.route, durations: [], slow: 0, errors: 0, threshold: record.threshold });
+      groups.set(key, {
+        key,
+        pagePath: record.pagePath,
+        method: record.method,
+        route: record.route,
+        durations: [],
+        slow: 0,
+        errors: 0,
+        threshold: record.threshold
+      });
     }
     const group = groups.get(key);
     group.durations.push(record.duration);
@@ -64,8 +80,10 @@ export function summarise(records) {
   return [...groups.values()]
     .map(group => ({
       key: group.key,
+      pagePath: group.pagePath,
       method: group.method,
       route: group.route,
+      label: `${group.method} ${group.route}`,
       threshold: group.threshold,
       count: group.durations.length,
       slow: group.slow,
@@ -85,15 +103,27 @@ export function printSummary(rows) {
     return;
   }
 
-  const width = Math.min(64, Math.max(...rows.map(row => row.key.length)));
-  const head = ['route'.padEnd(width), 'n'.padStart(4), 'p50'.padStart(7), 'p95'.padStart(7), 'max'.padStart(7), 'slow'.padStart(5), 'err'.padStart(4)];
+  const routeWidth = Math.min(52, Math.max(...rows.map(row => row.label.length), 5));
+  const pageWidth = Math.min(30, Math.max(...rows.map(row => row.pagePath.length), 4));
+
+  const head = [
+    'page'.padEnd(pageWidth),
+    'route'.padEnd(routeWidth),
+    'n'.padStart(4),
+    'p50'.padStart(7),
+    'p95'.padStart(7),
+    'max'.padStart(7),
+    'slow'.padStart(5),
+    'err'.padStart(4)
+  ];
 
   console.log(`\n${pc.bold('Slowest routes this session')}`);
   console.log(pc.dim(head.join('  ')));
 
   for (const row of rows) {
     const cells = [
-      trim(row.key, width).padEnd(width),
+      trim(row.pagePath, pageWidth).padEnd(pageWidth),
+      trim(row.label, routeWidth).padEnd(routeWidth),
       String(row.count).padStart(4),
       `${row.median}`.padStart(7),
       `${row.p95}`.padStart(7),
@@ -157,7 +187,13 @@ export function toHar(records) {
           receive: record.timings.download ?? 0
         },
         serverIPAddress: record.remoteAddress ?? '',
-        _beagle: { slow: record.slow, threshold: record.threshold, route: record.route }
+        _beagle: {
+          slow: record.slow,
+          threshold: record.threshold,
+          route: record.route,
+          page: record.page,
+          initiator: record.initiator
+        }
       }))
     }
   };

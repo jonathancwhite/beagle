@@ -23,6 +23,8 @@ export const defaults = {
   har: null,
   /** Print every tracked request, not just the slow ones. */
   all: false,
+  /** Print the script frame that fired each request, under its line. */
+  initiator: false,
   /** Attach to an already-running Chrome on this debugging port. */
   port: null,
   /** Stop after this many seconds. Null means run until Ctrl-C. */

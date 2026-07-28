@@ -26,6 +26,7 @@ Options
       --headless         launch Chrome headless
   -d, --duration <s>     stop and report after this many seconds
   -a, --all              print every request, not just the slow ones
+      --initiator        also print the code that fired each request
   -o, --out <path>       write a JSON report on exit
       --har <path>       write a HAR 1.2 file on exit
   -h, --help             show this
@@ -44,6 +45,7 @@ const OPTIONS = {
   headless: { type: 'boolean' },
   duration: { type: 'string', short: 'd' },
   all: { type: 'boolean', short: 'a' },
+  initiator: { type: 'boolean' },
   out: { type: 'string', short: 'o' },
   har: { type: 'string' },
   help: { type: 'boolean', short: 'h' },
@@ -71,6 +73,7 @@ export async function run(argv) {
   if (values.out) overrides.out = values.out;
   if (values.har) overrides.har = values.har;
   if (values.all) overrides.all = true;
+  if (values.initiator) overrides.initiator = true;
   if (values.headless) overrides.headless = true;
   if (values.port) overrides.port = Number(values.port);
   if (values.duration) overrides.duration = Number(values.duration);
@@ -89,7 +92,7 @@ export async function run(argv) {
   const target = config.target === 'attach' ? null : config.target;
 
   const collector = new Collector(config, record => {
-    if (config.all || record.slow) printRecord(record);
+    if (config.all || record.slow) printRecord(record, { initiator: config.initiator });
   });
 
   const { port, close } = await openChrome(config);

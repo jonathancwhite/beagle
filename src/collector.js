@@ -18,6 +18,38 @@ export class Collector {
     this.onFinish = onFinish;
     this.pending = new Map();
     this.records = [];
+    this.mainFrameId = null;
+    this.currentPage = null;
+  }
+
+  /** @param {string} frameId @param {string} url */
+  setMainFrame(frameId, url) {
+    this.mainFrameId = frameId;
+    this.currentPage = url;
+  }
+
+  /** Ignore sub-frames: an embedded report navigating is not a page change. */
+  setPage(frameId, url) {
+    if (frameId === this.mainFrameId) this.currentPage = url;
+  }
+
+  /**
+   * Where a request was fired from. Prefer the URL of the document that
+   * actually made the call — that keeps iframe traffic (an embedded Power BI
+   * report, say) labelled as its own page rather than the host page. Fall
+   * back to the tracked main-frame URL.
+   *
+   * @param {string|undefined} documentURL
+   * @param {string|undefined} frameId
+   * @returns {string|null}
+   */
+  pageFor(documentURL, frameId, type, url) {
+    // A top-level document request IS the navigation, and it goes out before
+    // the frame reports its new URL. Attribute it to where it is heading,
+    // not to the page being left behind.
+    if (type === 'Document') return url;
+    if (frameId && frameId !== this.mainFrameId && documentURL) return documentURL;
+    return this.currentPage ?? documentURL ?? null;
   }
 
   /** @param {Record<string,string>} headers @returns {Record<string,string>} */
@@ -39,7 +71,7 @@ export class Collector {
   }
 
   /** CDP `Network.requestWillBeSent` */
-  requestWillBeSent({ requestId, request, timestamp, wallTime, type, redirectResponse }) {
+  requestWillBeSent({ requestId, request, timestamp, wallTime, type, redirectResponse, documentURL, frameId, initiator }) {
     // A redirect reuses the request id, so close out the previous hop first.
     if (redirectResponse && this.pending.has(requestId)) {
       this.finish(requestId, { timestamp, encodedDataLength: 0 });
@@ -53,6 +85,8 @@ export class Collector {
       method: request.method,
       type: type ?? 'Other',
       requestHeaders: this.redactHeaders(request.headers),
+      page: this.pageFor(documentURL, frameId, type, request.url),
+      initiator: describeInitiator(initiator),
       startedAt: wallTime ? wallTime * 1000 : Date.now(),
       startTimestamp: timestamp
     });
@@ -101,6 +135,9 @@ export class Collector {
     const record = {
       url: entry.url,
       route: routeOf(entry.url),
+      page: entry.page ?? null,
+      pagePath: pagePathOf(entry.page),
+      initiator: entry.initiator ?? null,
       method: entry.method,
       type: entry.type,
       status: entry.status ?? null,
@@ -130,6 +167,45 @@ export class Collector {
     this.records.push(record);
     this.onFinish(record);
   }
+}
+
+/**
+ * The bit of a page URL worth showing in a table — path and query, no host.
+ * Hash routes are kept whole, since for some apps that IS the route.
+ *
+ * @param {string|null|undefined} url
+ * @returns {string}
+ */
+export function pagePathOf(url) {
+  if (!url) return '?';
+  if (url === 'about:blank') return 'about:blank';
+
+  try {
+    const parsed = new URL(url);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/';
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Boil a CDP initiator down to one readable line. The script stack is the
+ * useful part: it points at the code that fired the request.
+ *
+ * @param {object|undefined} initiator
+ * @returns {string|null}
+ */
+function describeInitiator(initiator) {
+  if (!initiator) return null;
+
+  const frame = initiator.stack?.callFrames?.find(candidate => candidate.url);
+  if (frame) {
+    const name = frame.functionName || '(anonymous)';
+    return `${name} @ ${frame.url}:${frame.lineNumber + 1}`;
+  }
+
+  if (initiator.url) return `${initiator.type} @ ${initiator.url}`;
+  return initiator.type ?? null;
 }
 
 /** @param {number|null} value @returns {number|null} */

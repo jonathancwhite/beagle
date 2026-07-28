@@ -33,6 +33,7 @@ beagle [url] [options]
       --headless         launch Chrome headless
   -d, --duration <s>     stop and report after this many seconds
   -a, --all              print every request, not just the slow ones
+      --initiator        also print the code that fired each request
   -o, --out <path>       write a JSON report on exit
       --har <path>       write a HAR 1.2 file on exit
 ```
@@ -84,7 +85,7 @@ See `beagle.config.example.js`.
 ## Reading the output
 
 ```
-SLOW    2140ms  200  GET    http://localhost:3000/api/v1/care-performance/ytd wait 2098ms
+SLOW    2140ms  200  GET    /api/v1/care-performance/ytd wait 2098ms ← /performance/ytd
 ```
 
 `wait` is the number that usually matters: time between the request leaving the
@@ -92,17 +93,32 @@ browser and the first response byte arriving. That is the server thinking. If
 `wait` is small but the total is large, the payload is too big or the connection
 is slow — a different problem with a different fix.
 
-The summary reports per route:
+The arrow shows the page that was on screen when the request went out, so you
+can find your way back to the screen that triggered it. Single-page apps are
+handled: beagle follows `history.pushState` route changes, not just full
+navigations. Requests from an embedded iframe — a Power BI report, say — are
+attributed to the iframe rather than the host page.
+
+For the calling code as well as the calling page, add `--initiator`:
+
+```
+SLOW    2140ms  200  GET    /api/v1/care-performance/ytd wait 2098ms ← /performance/ytd
+        fetchYtd @ http://localhost:3000/src/services/performance.js:88
+```
+
+The summary reports per page and route:
 
 | column | meaning |
 | --- | --- |
+| `page` | where the request was fired from |
 | `n` | requests seen |
 | `p50` / `p95` / `max` | milliseconds, end to end |
 | `slow` | how many crossed the threshold |
 | `err` | failures and 4xx/5xx |
 
 Routes are grouped by collapsing ids: `/patients/8821` and `/patients/9134`
-both become `/patients/:id`.
+both become `/patients/:id`. The same endpoint called from two different
+screens gets two rows — lumping them together hides the slow one.
 
 ## What it records
 
