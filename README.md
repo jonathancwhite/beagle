@@ -1,5 +1,9 @@
 # beagle
 
+[![npm](https://img.shields.io/npm/v/@jonathancwhite/beagle)](https://www.npmjs.com/package/@jonathancwhite/beagle)
+[![node](https://img.shields.io/node/v/@jonathancwhite/beagle)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/@jonathancwhite/beagle)](./LICENSE)
+
 Sniff out slow HTTP requests in a running web app. Beagle drives Chrome over the
 DevTools Protocol, watches every request the page makes, and flags the ones that
 take longer than you told it to expect.
@@ -7,10 +11,21 @@ take longer than you told it to expect.
 It changes nothing in the app under test. No SDK, no interceptor, no proxy.
 
 ```bash
-npx beagle http://localhost:3000
+npx @jonathancwhite/beagle http://localhost:3000
 ```
 
 Click around. Press Ctrl-C. You get a table of the slowest routes.
+
+## Install
+
+Nothing to install — `npx` fetches it on demand. To keep it around:
+
+```bash
+npm install -g @jonathancwhite/beagle   # then just: beagle http://localhost:3000
+npm install -D @jonathancwhite/beagle   # or as a dev dependency
+```
+
+Needs Node 20 or newer, and a Chrome on the machine.
 
 ## Why not just use DevTools
 
@@ -55,7 +70,7 @@ port and attach:
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
   --remote-debugging-port=9222 --user-data-dir=/tmp/beagle-profile
 
-npx beagle --port 9222
+npx @jonathancwhite/beagle --port 9222
 ```
 
 With `--port` and no URL, beagle watches whatever tab is already open.
@@ -100,9 +115,9 @@ scripts or images, so you can mail it around or open it offline. It holds:
 Signals are counts, not conclusions. They point; you decide.
 
 ```bash
-npx beagle http://localhost:3000 --open          # write it and open it
-npx beagle http://localhost:3000 --html perf.html
-npx beagle http://localhost:3000 --no-html       # terminal only
+npx @jonathancwhite/beagle http://localhost:3000 --open          # write it and open it
+npx @jonathancwhite/beagle http://localhost:3000 --html perf.html
+npx @jonathancwhite/beagle http://localhost:3000 --no-html       # terminal only
 ```
 
 ## Reading the output

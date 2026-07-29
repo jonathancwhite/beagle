@@ -16,7 +16,7 @@ const { version } = createRequire(import.meta.url)('../package.json');
 const HELP = `
 ${pc.bold('beagle')} — sniff out slow HTTP requests in a running web app
 
-  ${pc.dim('$')} npx beagle http://localhost:3000
+  ${pc.dim('$')} npx @jonathancwhite/beagle http://localhost:3000
 
 Options
   -c, --config <path>    config file (default: nearest beagle.config.js)

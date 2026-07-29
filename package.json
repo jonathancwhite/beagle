@@ -1,7 +1,23 @@
 {
-  "name": "beagle",
+  "name": "@jonathancwhite/beagle",
   "version": "0.1.0",
   "description": "Sniff out slow HTTP requests in a running web app, using the Chrome DevTools Protocol.",
+  "keywords": [
+    "performance",
+    "chrome-devtools-protocol",
+    "cdp",
+    "http",
+    "profiling",
+    "har",
+    "cli"
+  ],
+  "homepage": "https://github.com/jonathancwhite/beagle#readme",
+  "bugs": "https://github.com/jonathancwhite/beagle/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonathancwhite/beagle.git"
+  },
+  "author": "Jonathan White <contact@jonathancwhite.com>",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -14,8 +30,12 @@
     "bin",
     "src",
     "beagle.config.example.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "node ./bin/beagle.js"
   },
