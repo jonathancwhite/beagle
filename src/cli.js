@@ -37,7 +37,9 @@ Options
   -h, --help             show this
   -v, --version          print the version
 
-Press Ctrl-C to stop and print the summary.
+Press Ctrl-C to stop and print the summary. Nothing is written until it stops,
+so stop it with SIGINT — a hard kill loses the session. Scripts and agents:
+see AGENTS.md.
 `;
 
 const OPTIONS = {

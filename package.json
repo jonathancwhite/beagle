@@ -31,6 +31,7 @@
     "src",
     "beagle.config.example.js",
     "README.md",
+    "AGENTS.md",
     "LICENSE"
   ],
   "publishConfig": {

@@ -169,6 +169,13 @@ built to be safe to point at applications handling regulated data, so it
 collects timing and metadata only. Check the `redact` list before running
 against anything sensitive.
 
+## Driving it from a coding agent
+
+Beagle only writes its reports on a clean stop, so an agent that kills the
+process loses the session. [AGENTS.md](./AGENTS.md) sets out the pattern —
+background it, keep the pid, `kill -INT` when the human says they are done, read
+the JSON. Point your agent at that file.
+
 ## Requirements
 
 Node 20 or newer, and Chrome installed.
